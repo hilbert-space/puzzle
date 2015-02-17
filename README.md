@@ -1,0 +1,6 @@
+# Puzzle
+
+```
+go build
+./puzzle
+```
