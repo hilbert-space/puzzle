@@ -23,10 +23,12 @@ func main() {
 	for i := 0; i < *workers; i++ {
 		go func() {
 			for {
-				someC := multiply(data.A, data.B, data.m, data.p, data.n)
+				C := make([]float64, data.m*data.n)
 
-				if checksum != computeChecksum(someC) {
-					problem <- someC
+				multiply(data.A, data.B, C, data.m, data.p, data.n)
+
+				if checksum != computeChecksum(C) {
+					problem <- C
 				}
 			}
 		}()
@@ -41,9 +43,7 @@ func main() {
 	}
 }
 
-func multiply(A, B []float64, m, p, n int) []float64 {
-	C := make([]float64, m*n)
-
+func multiply(A, B, C []float64, m, p, n int) {
 	for i := 0; i < m; i++ {
 		for j := 0; j < n; j++ {
 			sum := 0.0
@@ -53,8 +53,6 @@ func multiply(A, B []float64, m, p, n int) []float64 {
 			C[j*m+i] = sum
 		}
 	}
-
-	return C
 }
 
 func computeChecksum(data []float64) [16]byte {
