@@ -4,12 +4,18 @@ import (
 	"crypto/md5"
 	"flag"
 	"fmt"
+	"math/rand"
 	"reflect"
 	"runtime"
 	"unsafe"
 )
 
 var workers = flag.Int("w", runtime.NumCPU(), "the number of workers")
+
+type result struct {
+	C    []float64
+	fill float64
+}
 
 func main() {
 	flag.Parse()
@@ -18,27 +24,33 @@ func main() {
 
 	checksum := computeChecksum(data.C)
 
-	problem := make(chan []float64)
+	problem := make(chan result)
 
 	for i := 0; i < *workers; i++ {
 		go func() {
 			for {
 				C := make([]float64, data.m*data.n)
 
+				fill := rand.Float64()
+				for j := range C {
+					C[j] = fill
+				}
+
 				multiply(data.A, data.B, C, data.m, data.p, data.n)
 
 				if checksum != computeChecksum(C) {
-					problem <- C
+					problem <- result{C: C, fill: fill}
 				}
 			}
 		}()
 	}
 
-	badC := <-problem
+	bad := <-problem
 
+	fmt.Printf("Fill: %.20e\n", bad.fill)
 	for i := range data.C {
-		if badC[i] != data.C[i] {
-			fmt.Printf("%6d %30.20e %30.20e\n", i, data.C[i], badC[i])
+		if data.C[i] != bad.C[i] {
+			fmt.Printf("%6d %30.20e %30.20e\n", i, data.C[i], bad.C[i])
 		}
 	}
 }
