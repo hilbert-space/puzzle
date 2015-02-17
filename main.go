@@ -12,13 +12,11 @@ import (
 var workers = flag.Int("w", runtime.NumCPU(), "the number of workers")
 
 func main() {
-	if data.checksum != computeChecksum(data.C) {
-		panic("the checksum is incorrect")
-	}
-
 	flag.Parse()
 
 	runtime.GOMAXPROCS(*workers)
+
+	checksum := computeChecksum(data.C)
 
 	problem := make(chan []float64)
 
@@ -26,7 +24,8 @@ func main() {
 		go func() {
 			for {
 				someC := multiply(data.A, data.B, data.m, data.p, data.n)
-				if data.checksum != computeChecksum(someC) {
+
+				if checksum != computeChecksum(someC) {
 					problem <- someC
 				}
 			}
