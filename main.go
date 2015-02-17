@@ -1,13 +1,10 @@
 package main
 
 import (
-	"crypto/md5"
 	"flag"
 	"fmt"
 	"math/rand"
-	"reflect"
 	"runtime"
-	"unsafe"
 )
 
 var workers = flag.Int("w", runtime.NumCPU(), "the number of workers")
@@ -20,9 +17,6 @@ type result struct {
 func main() {
 	flag.Parse()
 	runtime.GOMAXPROCS(*workers)
-
-	// The checksum of the expected answer.
-	checksum := computeChecksum(data.C)
 
 	problem := make(chan result)
 
@@ -41,8 +35,11 @@ func main() {
 				multiply(data.A, data.B, C, data.m, data.p, data.n)
 
 				// Check the result against the expected answer.
-				if checksum != computeChecksum(C) {
-					problem <- result{C: C, fill: fill}
+				for j := range C {
+					if data.C[j] != C[j] {
+						problem <- result{C: C, fill: fill}
+						break
+					}
 				}
 			}
 		}()
@@ -70,15 +67,4 @@ func multiply(A, B, C []float64, m, p, n int) {
 			C[j*m+i] = sum
 		}
 	}
-}
-
-func computeChecksum(data []float64) [16]byte {
-	var bytes []byte
-
-	header := (*reflect.SliceHeader)(unsafe.Pointer(&bytes))
-	header.Data = (*reflect.SliceHeader)(unsafe.Pointer(&data)).Data
-	header.Len = 8 * len(data)
-	header.Cap = 8 * len(data)
-
-	return md5.Sum(bytes)
 }
