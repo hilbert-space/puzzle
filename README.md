@@ -1,6 +1,7 @@
 # Puzzle
 
 ```
-go build
-./puzzle
+make
+./puzzle-c
+./puzzle-go
 ```
