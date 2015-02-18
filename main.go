@@ -3,13 +3,12 @@ package main
 import (
 	"flag"
 	"fmt"
-	"math/rand"
 	"runtime"
 )
 
 type result struct {
-	C    []float64
-	fill float64
+	id int
+	C  []float64
 }
 
 func main() {
@@ -27,10 +26,10 @@ func main() {
 
 	// Construct two matrices.
 	A := make([]float64, m*p)
-	B := make([]float64, p*n)
 	for i := range A {
 		A[i] = 42
 	}
+	B := make([]float64, p*n)
 	for i := range B {
 		B[i] = 42
 	}
@@ -42,14 +41,13 @@ func main() {
 	problem := make(chan result)
 
 	for i := 0; i < w; i++ {
-		go func() {
+		go func(i int) {
 			for {
 				C := make([]float64, m*n)
 
 				// Fill in with a number specific to the current goroutine.
-				fill := rand.Float64()
 				for j := range C {
-					C[j] = fill
+					C[j] = float64(i)
 				}
 
 				// Multiply A by B and store the result in C.
@@ -58,19 +56,19 @@ func main() {
 				// Check the result against the expected answer.
 				for j := range expectedC {
 					if expectedC[j] != C[j] {
-						problem <- result{C: C, fill: fill}
+						problem <- result{id: i, C: C}
 						break
 					}
 				}
 			}
-		}()
+		}(i)
 	}
 
 	bad := <-problem
 
 	// Sometimes the program reaches this point and reports that some of the
 	// entries of bad.C have not been touched: they are equal to bad.fill.
-	fmt.Printf("Fill: %.20e\n", bad.fill)
+	fmt.Printf("ID: %d\n", bad.id)
 	for i := range expectedC {
 		if expectedC[i] != bad.C[i] {
 			fmt.Printf("%6d %30.20e %30.20e\n", i, expectedC[i], bad.C[i])
