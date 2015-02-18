@@ -7,24 +7,23 @@ import (
 	"runtime"
 )
 
-var workers = flag.Int("w", runtime.NumCPU(), "the number of workers")
-
 type result struct {
 	C    []float64
 	fill float64
 }
 
 func main() {
-	const (
-		m = 20
-		p = 2
-		n = 10001
-	)
+	var m, p, n, w int
 
+	flag.IntVar(&m, "m", 20, "the first dimension")
+	flag.IntVar(&p, "p", 2, "the second dimension")
+	flag.IntVar(&n, "n", 10000, "the third dimension")
+	flag.IntVar(&w, "w", runtime.NumCPU(), "the number of workers")
 	flag.Parse()
-	runtime.GOMAXPROCS(*workers)
 
-	fmt.Printf("Running %d workers...\n", *workers)
+	fmt.Printf("m = %d, p = %d, n = %d, w = %d\n", m, p, n, w)
+
+	runtime.GOMAXPROCS(w)
 
 	// Generate two random matrices.
 	A := make([]float64, m*p)
@@ -42,7 +41,7 @@ func main() {
 
 	problem := make(chan result)
 
-	for i := 0; i < *workers; i++ {
+	for i := 0; i < w; i++ {
 		go func() {
 			for {
 				C := make([]float64, m*n)
