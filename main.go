@@ -25,7 +25,7 @@ func main() {
 
 	runtime.GOMAXPROCS(w)
 
-	// Generate two random matrices.
+	// Construct two matrices.
 	A := make([]float64, m*p)
 	B := make([]float64, p*n)
 	for i := range A {
