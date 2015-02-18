@@ -15,15 +15,37 @@ type result struct {
 }
 
 func main() {
+	const (
+		m = 20
+		p = 2
+		n = 10001
+	)
+
 	flag.Parse()
 	runtime.GOMAXPROCS(*workers)
+
+	fmt.Printf("Running %d workers...\n", *workers)
+
+	// Generate two random matrices.
+	A := make([]float64, m*p)
+	B := make([]float64, p*n)
+	for i := range A {
+		A[i] = 42
+	}
+	for i := range B {
+		B[i] = 42
+	}
+
+	// Compute the product of A and B.
+	expectedC := make([]float64, m*n)
+	multiply(A, B, expectedC, m, p, n)
 
 	problem := make(chan result)
 
 	for i := 0; i < *workers; i++ {
 		go func() {
 			for {
-				C := make([]float64, data.m*data.n)
+				C := make([]float64, m*n)
 
 				// Fill in with a number specific to the current goroutine.
 				fill := rand.Float64()
@@ -32,11 +54,11 @@ func main() {
 				}
 
 				// Multiply A by B and store the result in C.
-				multiply(data.A, data.B, C, data.m, data.p, data.n)
+				multiply(A, B, C, m, p, n)
 
 				// Check the result against the expected answer.
-				for j := range C {
-					if data.C[j] != C[j] {
+				for j := range expectedC {
+					if expectedC[j] != C[j] {
 						problem <- result{C: C, fill: fill}
 						break
 					}
@@ -50,9 +72,9 @@ func main() {
 	// Sometimes the program reaches this point and reports that some of the
 	// entries of bad.C have not been touched: they are equal to bad.fill.
 	fmt.Printf("Fill: %.20e\n", bad.fill)
-	for i := range data.C {
-		if data.C[i] != bad.C[i] {
-			fmt.Printf("%6d %30.20e %30.20e\n", i, data.C[i], bad.C[i])
+	for i := range expectedC {
+		if expectedC[i] != bad.C[i] {
+			fmt.Printf("%6d %30.20e %30.20e\n", i, expectedC[i], bad.C[i])
 		}
 	}
 }
