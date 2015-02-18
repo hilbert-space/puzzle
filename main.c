@@ -24,6 +24,8 @@ int main(int argc, char *argv[]) {
 	double *A, *B, *C;
 	pthread_t threads[W];
 
+	printf("m = %d, p = %d, n = %d, w = %d\n", M, P, N, W);
+
 	A = malloc(sizeof(double)*M*P);
 	for (i = 0; i < M*P; i++) A[i] = 42;
 
