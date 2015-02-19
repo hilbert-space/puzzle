@@ -61,31 +61,32 @@ void *worker(void *context) {
 	double *C;
 	data_t *data;
 
+	bad = 0;
 	data = (data_t *)context;
 
-	while (1) {
+	while (!bad) {
 		C = (double *)malloc(sizeof(double)*M*N);
 		for (i = 0; i < M*N; i++) C[i] = (double)(data->id);
 
 		multiply(data->A, data->B, C, M, P, N);
 
-		bad = 0;
-
 		for (i = 0; i < M*N; i++) {
 			if (data->C[i] == C[i]) continue;
+			if (!bad) {
+				printf("ID: %ld\n", data->id);
+				bad = 1;
+			}
 			printf("%6lu: %30.20e %30.20e\n", i, data->C[i], C[i]);
-			bad = 1;
-		}
-
-		if (bad) {
-			printf("ID: %ld\n", data->id);
-			exit(-1); /* Yes, just like that. */
 		}
 
 		free((void *)C);
 	}
 
 	free((void *)data);
+
+	/* Yes, just like that. */
+	if (bad) exit(-1);
+
 	pthread_exit(NULL);
 }
 
