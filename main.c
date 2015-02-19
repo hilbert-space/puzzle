@@ -48,7 +48,9 @@ int main(int argc, char *argv[]) {
 		}
 	}
 
-	pthread_exit(NULL);
+	for (id = 0; id < W; id++) {
+		pthread_join(threads[id], NULL);
+	}
 
 	free((void *)A);
 	free((void *)B);
@@ -85,9 +87,7 @@ void *worker(void *context) {
 	free((void *)data);
 
 	/* Yes, just like that. */
-	if (bad) exit(-1);
-
-	pthread_exit(NULL);
+	exit(-1);
 }
 
 void multiply(const double *A, const double *B, double *C, size_t m, size_t p, size_t n) {
