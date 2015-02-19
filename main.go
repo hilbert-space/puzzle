@@ -40,28 +40,28 @@ func main() {
 
 	problem := make(chan result)
 
-	for i := 0; i < w; i++ {
-		go func(i int) {
+	for id := 0; id < w; id++ {
+		go func(id int) {
 			for {
 				C := make([]float64, m*n)
 
 				// Fill in with a number specific to the current goroutine.
-				for j := range C {
-					C[j] = float64(i)
+				for i := range C {
+					C[i] = float64(id)
 				}
 
 				// Multiply A by B and store the result in C.
 				multiply(A, B, C, m, p, n)
 
 				// Check the result against the expected answer.
-				for j := range expectedC {
-					if expectedC[j] != C[j] {
-						problem <- result{id: i, C: C}
+				for i := range expectedC {
+					if expectedC[i] != C[i] {
+						problem <- result{id: id, C: C}
 						break
 					}
 				}
 			}
-		}(i)
+		}(id)
 	}
 
 	bad := <-problem
